@@ -1,8 +1,10 @@
 FROM php:8.3-apache
 
-# Ensure only the prefork MPM is enabled for PHP
-RUN a2dismod mpm_event mpm_worker 2>/dev/null || true
-RUN a2enmod mpm_prefork
+RUN for module in mpm_event mpm_worker mpm_prefork; do \
+        a2dismod "$module" 2>/dev/null || true; \
+    done \
+    && a2enmod mpm_prefork \
+    && apache2ctl -M
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip libicu-dev libonig-dev libxml2-dev libzip-dev \
