@@ -1,5 +1,9 @@
 FROM php:8.3-apache
 
+# Ensure only the prefork MPM is enabled for PHP
+RUN a2dismod mpm_event mpm_worker 2>/dev/null || true
+RUN a2enmod mpm_prefork
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip libicu-dev libonig-dev libxml2-dev libzip-dev \
     libpng-dev libjpeg62-turbo-dev libfreetype6-dev libcurl4-openssl-dev \
