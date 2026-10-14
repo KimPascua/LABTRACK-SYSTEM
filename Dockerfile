@@ -1,8 +1,7 @@
 FROM php:8.3-apache
 
-RUN for module in mpm_event mpm_worker mpm_prefork; do \
-        a2dismod "$module" 2>/dev/null || true; \
-    done \
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
+          /etc/apache2/mods-enabled/mpm_*.conf \
     && a2enmod mpm_prefork \
     && apache2ctl -M
 
