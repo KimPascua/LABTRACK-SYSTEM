@@ -1,0 +1,455 @@
+
+/* =========================================
+   GLOBAL RESET
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* =========================================
+   BODY / BACKGROUND
+========================================= */
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 24px 16px;
+    margin: 0;
+
+    background: url("../images/background.jpg")
+        no-repeat center center / cover;
+
+    overflow-x: clip;
+    overflow-y: auto;
+
+    position: relative;
+}
+
+/* Dark overlay */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.25);
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* =========================================
+   GLASS LOGIN / SIGNUP CARD
+========================================= */
+
+.login-box {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    max-width: 520px;
+
+    margin: auto;
+    padding: 24px 40px 30px;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.25),
+        rgba(255, 255, 255, 0.08)
+    );
+
+    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    border-radius: 25px;
+
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+
+    text-align: center;
+}
+
+/* =========================================
+   LOGO AND HEADINGS
+========================================= */
+
+.logo {
+    display: block;
+    width: 125px;
+    max-width: 100%;
+    height: auto;
+
+    margin: 0 auto 5px;
+}
+
+h1 {
+    color: white;
+    font-size: 23px;
+    line-height: 1.4;
+
+    margin-bottom: 5px;
+}
+
+p {
+    color: #e8e8e8;
+    line-height: 1.5;
+
+    margin-bottom: 10px;
+}
+
+/* =========================================
+   INPUT FIELDS
+========================================= */
+
+.input-box {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+.input-box input {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+
+    padding: 15px 20px 15px 40px;
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+
+    font-size: 16px;
+}
+
+.input-box input::placeholder {
+    color: #eee;
+}
+
+/* Input icons */
+
+.fa-user,
+.fa-lock {
+    position: absolute;
+
+    left: 10px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: #fff;
+    font-size: 18px;
+
+    pointer-events: none;
+}
+
+/* =========================================
+   OPTIONS / LINKS
+========================================= */
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 10px;
+    margin-bottom: 20px;
+
+    color: white;
+    font-size: 14px;
+}
+
+.options a {
+    color: #fff;
+    text-decoration: none;
+}
+
+#back {
+    margin-top: 0;
+    color: #fff;
+    text-decoration: none;
+}
+
+.fa-arrow-left {
+    color: #7cc8ff;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+#btn1,
+#btn2 {
+    display: block;
+
+    width: 100%;
+    padding: 15px;
+
+    border: none;
+    border-radius: 12px;
+
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#btn1 {
+    background: #0058d9;
+}
+
+#btn1:hover {
+    background: #0045aa;
+}
+
+#btn2 {
+    background: #d962008d;
+}
+
+/* =========================================
+   SIGNUP FOOTER
+========================================= */
+
+.signup {
+    color: white;
+    margin-top: 20px;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+.signup a {
+    color: #7cc8ff;
+    text-decoration: none;
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media screen and (max-width: 768px) {
+    body {
+        padding: 20px 16px;
+    }
+
+    .login-box {
+        max-width: 460px;
+        padding: 24px 28px 28px;
+        border-radius: 22px;
+    }
+
+    .logo {
+        width: 100px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    p {
+        font-size: 14px;
+    }
+
+    .input-box {
+        margin-bottom: 15px;
+    }
+
+    .input-box input {
+        padding: 14px 14px 14px 40px;
+    }
+
+    #btn1,
+    #btn2 {
+        padding: 14px;
+        font-size: 17px;
+    }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media screen and (max-width: 480px) {
+    body {
+        padding: 16px 12px;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 420px;
+
+        padding: 22px 18px 24px;
+        margin: auto;
+
+        border-radius: 20px;
+    }
+
+    .logo {
+        width: 82px;
+        margin-bottom: 8px;
+    }
+
+    h1 {
+        font-size: 20px;
+        line-height: 1.4;
+    }
+
+    p {
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 14px;
+    }
+
+    .input-box {
+        margin-bottom: 14px;
+    }
+
+    .input-box input {
+        width: 100%;
+        min-width: 0;
+
+        padding: 13px 12px 13px 40px;
+
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .fa-user,
+    .fa-lock {
+        left: 11px;
+        font-size: 16px;
+    }
+
+    .options {
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 8px;
+        margin-bottom: 16px;
+
+        font-size: 12px;
+    }
+
+    #btn1,
+    #btn2 {
+        width: 100%;
+        padding: 13px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .signup {
+        margin-top: 16px;
+        font-size: 13px;
+        line-height: 1.7;
+
+        overflow-wrap: anywhere;
+    }
+}
+
+/* =========================================
+   EXTRA-SMALL PHONES
+========================================= */
+
+@media screen and (max-width: 360px) {
+    body {
+        padding: 12px 8px;
+    }
+
+    .login-box {
+        padding: 20px 14px 22px;
+        border-radius: 16px;
+    }
+
+    .logo {
+        width: 72px;
+    }
+
+    h1 {
+        font-size: 18px;
+    }
+
+    p {
+        font-size: 13px;
+    }
+
+    .input-box input {
+        padding-left: 36px;
+    }
+
+    .fa-user,
+    .fa-lock {
+        left: 10px;
+        font-size: 16px;
+    }
+
+    .options {
+        gap: 8px;
+        font-size: 11px;
+    }
+
+    #btn1,
+    #btn2 {
+        padding: 12px;
+        font-size: 15px;
+    }
+}
+
+/* =========================================
+   SHORT SCREENS / LANDSCAPE PHONES
+========================================= */
+
+@media screen and (max-height: 500px) and (max-width: 900px) {
+    body {
+        align-items: flex-start;
+
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .login-box {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .logo {
+        width: 65px;
+        margin-bottom: 4px;
+    }
+
+    h1 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    p {
+        margin-bottom: 8px;
+    }
+
+    .input-box {
+        margin-bottom: 10px;
+    }
+
+    .input-box input {
+        padding-top: 11px;
+        padding-bottom: 11px;
+    }
+
+    .options {
+        margin-bottom: 12px;
+    }
+}

@@ -1,0 +1,305 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: url("../images/background.jpg") no-repeat center center / cover;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Dark overlay */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .25);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Glass Login Card */
+.login-box {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 520px);
+    padding: 20px 45px 45px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, .25),
+        rgba(255, 255, 255, .08)
+    );
+    border: 1px solid rgba(255, 255, 255, .25);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 25px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .25);
+    text-align: center;
+}
+
+.logo {
+    display: block;
+    width: 125px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 5px;
+}
+
+h1 {
+    color: white;
+    font-size: 23px;
+    line-height: 1.4;
+    margin-bottom: 5px;
+}
+
+p {
+    color: #e8e8e8;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.input-box {
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.input-box input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    padding: 15px 20px 15px 40px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    outline: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .12);
+    color: white;
+    font-size: 16px;
+}
+
+.input-box input::placeholder {
+    color: #eee;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: white;
+    font-size: 14px;
+}
+
+.options a {
+    color: #fff;
+    text-decoration: none;
+}
+
+#back {
+    color: #fff;
+}
+
+#btn1,
+#btn2 {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .3s ease;
+}
+
+#btn1 {
+    background: #0058d9;
+}
+
+#btn1:hover {
+    background: #0045aa;
+}
+
+#btn2 {
+    background: #d962008d;
+}
+
+.signup {
+    margin-top: 20px;
+    color: white;
+}
+
+.signup a {
+    color: #7cc8ff;
+    text-decoration: none;
+}
+
+.fa-arrow-left {
+    color: #7cc8ff;
+}
+
+.fa-user,
+.fa-lock {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 18px;
+    pointer-events: none;
+}
+
+/* Tablets and mobile devices */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 20px 16px;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 400px;
+        padding: 22px 24px 26px;
+        border-radius: 22px;
+    }
+
+    .logo {
+        width: 85px;
+        margin-bottom: 8px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    p {
+        font-size: 14px;
+        margin-bottom: 14px;
+    }
+
+    .input-box {
+        margin-bottom: 13px;
+    }
+
+    .input-box input {
+        padding: 13px 12px 13px 40px;
+        font-size: 16px;
+    }
+
+    .options {
+        font-size: 12px;
+        margin-bottom: 16px;
+    }
+
+    #btn1,
+    #btn2 {
+        padding: 13px;
+        font-size: 16px;
+    }
+
+    .signup {
+        margin-top: 14px;
+        font-size: 13px;
+    }
+}
+
+/* Small phones */
+@media screen and (max-width: 480px) {
+    body {
+        padding: 16px 12px;
+    }
+
+    .login-box {
+        max-width: 360px;
+        padding: 20px 18px 22px;
+        border-radius: 20px;
+    }
+
+    .logo {
+        width: 72px;
+    }
+
+    h1 {
+        font-size: 18px;
+    }
+
+    p {
+        font-size: 13px;
+    }
+
+    .input-box input {
+        padding: 12px 10px 12px 38px;
+        border-radius: 10px;
+    }
+
+    .fa-user,
+    .fa-lock {
+        left: 11px;
+        font-size: 16px;
+    }
+
+    .options {
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    #btn1,
+    #btn2 {
+        padding: 12px;
+        font-size: 15px;
+        border-radius: 10px;
+    }
+}
+
+/* Extra-small phones */
+@media screen and (max-width: 360px) {
+    body {
+        padding: 12px 8px;
+    }
+
+    .login-box {
+        max-width: 340px;
+        padding: 18px 14px 20px;
+    }
+
+    .logo {
+        width: 64px;
+    }
+
+    h1 {
+        font-size: 17px;
+    }
+
+    .options {
+        font-size: 11px;
+    }
+
+    .signup {
+        font-size: 12px;
+    }
+}
+
+/* Short screens and landscape phones */
+@media screen and (max-height: 500px) and (max-width: 900px) {
+    body {
+        align-items: flex-start;
+    }
+
+    .login-box {
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+}
