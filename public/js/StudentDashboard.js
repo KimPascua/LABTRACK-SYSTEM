@@ -3637,16 +3637,27 @@ function initGlobalSearch() {
        INPUT
     ========================================= */
 
-    searchInput.addEventListener(
-        'input',
-        function () {
+/* Show results only when the student types a keyword */
+    searchInput.addEventListener('input', function () {
+        const keyword = this.value.trim();
 
-            performSearch(
-                this.value
-            );
-
+        if (!keyword) {
+            resultsContainer.innerHTML = '';
+            resultsContainer.classList.remove('show');
+            return;
         }
-    );
+
+        performSearch(keyword);
+    });
+
+    /* Keep results hidden when search is opened or focused */
+    searchInput.addEventListener('focus', function () {
+        if (!this.value.trim()) {
+            resultsContainer.innerHTML = '';
+            resultsContainer.classList.remove('show');
+        }
+    });
+
 
 
     /* =========================================
