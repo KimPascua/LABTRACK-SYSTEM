@@ -3259,6 +3259,33 @@ input[type="password"]::-ms-clear {
 }
 
 
+/* Fix broken profile image box in student topbar */
+@media screen and (max-width: 768px) {
+    .topbar .avatar {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    .topbar .avatar img {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+}
+
+
 /* Hide bottom navigation on the student dashboard only */
 @media screen and (max-width: 768px) {
     .m-tabbar {
