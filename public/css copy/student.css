@@ -3286,6 +3286,17 @@ input[type="password"]::-ms-clear {
 }
 
 
+
+/* Student mobile: hide sidebar and notification icons while searching */
+@media screen and (max-width: 768px) {
+    html.m-search-open .topbar .hamburger,
+    html.m-search-open .topbar .bell {
+        display: none !important;
+    }
+}
+
+
+
 /* Hide bottom navigation on the student dashboard only */
 @media screen and (max-width: 768px) {
     .m-tabbar {
