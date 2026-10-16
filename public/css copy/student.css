@@ -3258,6 +3258,15 @@ input[type="password"]::-ms-clear {
     pointer-events: auto;
 }
 
+
+/* Hide bottom navigation on the student dashboard only */
+@media screen and (max-width: 768px) {
+    .m-tabbar {
+        display: none !important;
+    }
+}
+
+
 @keyframes attAlertIn  { from { opacity: 0; transform: translate(-50%, -25px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes attAlertOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -20px); } }
 
