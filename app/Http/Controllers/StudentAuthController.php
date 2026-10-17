@@ -138,26 +138,7 @@ public function qrLogin(Request $request)
     ]);
 
 
-        // ==========================================
-        // IMPORTANT:
-        // QR LOGIN ALSO NEEDS STUDENT GUARD LOGIN
-        // ==========================================
-        Auth::guard('student')->login($student);
-
-        $request->session()->regenerate();
-
-        // Keep existing session values
-        session([
-            'student_id' => $student->id,
-            'student_name' => $student->fullname,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Student verified successfully.',
-            'redirect' => route('student.dashboard')
-        ]);
-    }
+}
 
     public function studentSubjects(Request $request)
 {

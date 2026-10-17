@@ -40,7 +40,7 @@ function openQRScanner() {
 
     qrScanner = new Html5Qrcode("qr-reader");
 
-    
+
 
 const config = {
     fps: 10,
@@ -61,37 +61,30 @@ qrScanner.start(
     // ==============================
     // QR DETECTED
     // ==============================
-    
+
 function(decodedText) {
     if (isProcessingQR) return;
 
     console.log("QR DETECTED:", decodedText);
 
     const qrData = parseStudentQR(decodedText);
+    const status = document.getElementById("qrStatus");
 
     if (!qrData) {
-        const status = document.getElementById("qrStatus");
-
         if (status) {
-            status.textContent =
-                "Invalid student QR format. Please scan again.";
+            status.textContent = "Invalid student QR format.";
             status.className = "qr-status error";
         }
-
         return;
     }
 
     isProcessingQR = true;
 
-    const status = document.getElementById("qrStatus");
-
     if (status) {
-        status.textContent =
-            "QR detected. Enter your password to continue.";
+        status.textContent = "QR detected. Checking student record...";
         status.className = "qr-status verified";
     }
 
-    // Stop scanning before asking for the password.
     const scanner = qrScanner;
 
     if (scanner) {
@@ -100,12 +93,19 @@ function(decodedText) {
                 console.warn("Scanner stop warning:", error);
             })
             .finally(function() {
-                showQRPasswordPrompt(qrData);
+                // Do not log in using personal details alone.
+                // Attendance needs its own backend endpoint.
+                if (status) {
+                    status.textContent =
+                        "QR recognized. Attendance verification is not configured yet.";
+                    status.className = "qr-status";
+                }
+
+                isProcessingQR = false;
             });
-    } else {
-        showQRPasswordPrompt(qrData);
     }
 },
+
 
     // ==============================
     // SCANNING ERROR
@@ -199,7 +199,7 @@ console.log("VERIFY FUNCTION CALLED:", qrData);
 
         },
 
-        
+
         body: JSON.stringify({
             date_of_birth: qrData.date_of_birth,
             contact: qrData.contact,
@@ -347,15 +347,24 @@ if (qrStatus) {
 
 
 function parseStudentQR(decodedText) {
-    const birthdayMatch = decodedText.match(
+    if (typeof decodedText !== "string") {
+        return null;
+    }
+
+    // Normalize spaces and line breaks from the QR text.
+    const text = decodedText
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const birthdayMatch = text.match(
         /BIRTHDAY:\s*(\d{1,2}\/\d{1,2}\/\d{4})(?=\s+CONTACT NUMBER:)/i
     );
 
-    const contactMatch = decodedText.match(
+    const contactMatch = text.match(
         /CONTACT NUMBER:\s*(\S+)(?=\s+ADDRESS:)/i
     );
 
-    const addressMatch = decodedText.match(
+    const addressMatch = text.match(
         /ADDRESS:\s*(.+)$/i
     );
 
@@ -363,13 +372,12 @@ function parseStudentQR(decodedText) {
         return null;
     }
 
-    const birthday = birthdayMatch[1].trim();
-    const contact = contactMatch[1].trim();
-    const address = addressMatch[1].trim();
-
-    const dateMatch = birthday.match(
+    const dateMatch = birthdayMatch[1].match(
         /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
     );
+
+    const contact = contactMatch[1].trim();
+    const address = addressMatch[1].trim();
 
     if (!dateMatch || !contact || !address) {
         return null;
@@ -381,6 +389,7 @@ function parseStudentQR(decodedText) {
 
     const date = new Date(Date.UTC(year, month - 1, day));
 
+    // Reject invalid calendar dates.
     if (
         date.getUTCFullYear() !== year ||
         date.getUTCMonth() !== month - 1 ||
@@ -392,74 +401,14 @@ function parseStudentQR(decodedText) {
     return {
         date_of_birth:
             `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-        contact: contact,
-        address: address
+        contact,
+        address
     };
 }
 
 
-function showQRPasswordPrompt(qrData) {
-    const status = document.getElementById("qrStatus");
-    const reader = document.getElementById("qr-reader");
 
-    if (!reader) return;
 
-    let wrapper = document.getElementById("qrPasswordWrapper");
-
-    if (!wrapper) {
-        wrapper = document.createElement("div");
-        wrapper.id = "qrPasswordWrapper";
-
-        wrapper.innerHTML = `
-            <label for="qrPassword">Student Password</label>
-            <input
-                type="password"
-                id="qrPassword"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-            >
-            <button type="button" id="qrVerifyButton">
-                Verify and Login
-            </button>
-            <button type="button" id="qrRescanButton">
-                Scan Again
-            </button>
-        `;
-
-        reader.insertAdjacentElement("afterend", wrapper);
-    }
-
-    const passwordInput = document.getElementById("qrPassword");
-    const verifyButton = document.getElementById("qrVerifyButton");
-    const rescanButton = document.getElementById("qrRescanButton");
-
-    passwordInput.value = "";
-
-    verifyButton.onclick = function() {
-        if (!passwordInput.value) {
-            if (status) {
-                status.textContent = "Please enter your password.";
-                status.className = "qr-status error";
-            }
-            return;
-        }
-
-        verifyStudentByQR(qrData, passwordInput.value);
-    };
-
-    rescanButton.onclick = async function() {
-        wrapper.remove();
-        isProcessingQR = false;
-        await restartQRScanner();
-    };
-
-    if (status) {
-        status.textContent = "Enter your password to verify your account.";
-        status.className = "qr-status";
-    }
-
-    passwordInput.focus();
-}
 
 
 

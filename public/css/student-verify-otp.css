@@ -1,0 +1,165 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #f1f5f9;
+}
+
+.verify-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 32px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+.logo {
+    color: #2563eb;
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+h1 {
+    font-size: 23px;
+    color: #172554;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.description {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+input {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 8px;
+    margin: 0 0 8px;
+}
+
+input:focus {
+    outline: 2px solid #93c5fd;
+    border-color: #2563eb;
+}
+
+#otpHelp {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.message {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
+}
+
+.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.message ul {
+    padding-left: 18px;
+}
+
+.resend {
+    margin-top: 20px;
+}
+
+.resend-button {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.resend-button:hover {
+    background: #cbd5e1;
+}
+
+.back {
+    display: block;
+    margin-top: 20px;
+    color: #2563eb;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+}
+
+.back:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 16px;
+    }
+
+    .verify-card {
+        padding: 24px 20px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+}

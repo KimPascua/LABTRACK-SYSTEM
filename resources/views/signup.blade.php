@@ -18,11 +18,21 @@
 
 <div class="login-box">
 
-    <img src="{{ asset('images/logo.png') }}" class="logo">
+    <img src="{{ asset('images/logo.png') }}" class="logo" alt="LabTrack Logo">
 
     <h1>CREATE ACCOUNT</h1>
 
     <p>Sign up to get started.</p>
+
+    @if ($errors->any())
+        <div class="error-message" role="alert">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <form action="{{ route('student.register') }}" method="POST" autocomplete="off">
         @csrf
@@ -35,9 +45,10 @@
                 name="full_name"
                 value="{{ old('full_name') }}"
                 placeholder="Full Name"
-                autocomplete="off"
+                autocomplete="name"
                 required>
         </div>
+
 
         <div class="input-box">
             <i class="fa-regular fa-user"></i>
@@ -45,11 +56,26 @@
             <input
                 type="text"
                 name="student_id"
-                placeholder="Student ID"
-                autocomplete="off"
                 value="{{ old('student_id') }}"
+                placeholder="Student ID"
+                autocomplete="username"
                 required>
         </div>
+
+        <!-- EMAIL FIELD -->
+        <div class="input-box">
+            <i class="fa-solid fa-envelope"></i>
+
+            <input
+                type="email"
+                name="email"
+                value="{{ old('email') }}"
+                placeholder="Gmail Address"
+                autocomplete="email"
+                maxlength="255"
+                required>
+        </div>
+
 
         <div class="input-box">
             <i class="fa-solid fa-lock"></i>
@@ -76,16 +102,11 @@
         <button id="btn1" type="submit">
             SUBMIT
         </button>
-
-
-       
-
     </form>
 
     <br>
 
     <div class="signup">
-
         <a id="back" href="{{ route('student.login') }}">
             <span>
                 <i class="fa-solid fa-arrow-left"></i>
@@ -94,7 +115,6 @@
             Already have an account?
             <span style="color: #7cc8ff;">Login</span>
         </a>
-
     </div>
 
 </div>

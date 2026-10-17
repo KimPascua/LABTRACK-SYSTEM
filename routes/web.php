@@ -24,6 +24,7 @@ use App\Http\Controllers\StudentTaskController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\DetectedDeviceController;
 use App\Http\Controllers\AdminDetectedDeviceController;
+use App\Http\Controllers\StudentRegistrationOtpController;
 
 // =====================================================
 // HOME PAGE
@@ -131,10 +132,29 @@ Route::get('/student-signup', function () {
 // =========================
 // STUDENT REGISTRATION
 // =========================
+// STUDENT REGISTRATION WITH EMAIL OTP
+Route::post('/student-signup', [
+    StudentRegistrationOtpController::class,
+    'store'
+])->middleware('throttle:5,1')->name('student.register');
 
-Route::post('/student-signup', [StudentController::class, 'store'])
-    ->name('student.register');
+// OTP VERIFICATION PAGE
+Route::get('/student-verify-otp', [
+    StudentRegistrationOtpController::class,
+    'showVerification'
+])->name('student.register.verify.page');
 
+// VERIFY OTP
+Route::post('/student-verify-otp', [
+    StudentRegistrationOtpController::class,
+    'verify'
+])->middleware('throttle:10,1')->name('student.register.verify');
+
+// RESEND OTP
+Route::post('/student-resend-otp', [
+    StudentRegistrationOtpController::class,
+    'resend'
+])->middleware('throttle:3,1')->name('student.register.resend');
 
 
 // =========================
@@ -373,6 +393,9 @@ Route::get('/admin/attendance', [AttendanceController::class, 'page'])
 
 Route::get('/admin/attendance/data', [AttendanceController::class, 'index'])
     ->name('admin.attendance.data');
+
+Route::post('/attendance/scan-qr', [AttendanceController::class,'scanQR'])
+->name('attendance.scan-qr');
 
 
 // =========================

@@ -490,4 +490,87 @@ public function timeOut(Request $request)
         ]
     ]);
 }
+
+// =====================================================
+// QR ATTENDANCE SCAN
+// =====================================================
+
+public function scanQR(Request $request)
+{
+    $validated = $request->validate([
+        'date_of_birth' => 'required|date_format:Y-m-d',
+        'contact'       => 'required|string|max:30',
+        'address'       => 'required|string|max:255',
+        'subject'       => 'required|string|max:100',
+        'instructor'    => 'required|string|max:100',
+        'schedule'      => 'required|string|max:100',
+    ]);
+
+    // Find the matching student.
+    // Reject ambiguous matches instead of guessing.
+    $students = Student::whereDate(
+        'date_of_birth',
+        $validated['date_of_birth']
+    )
+        ->where('contact', trim($validated['contact']))
+        ->whereRaw(
+            'LOWER(TRIM(address)) = ?',
+            [strtolower(trim($validated['address']))]
+        )
+        ->limit(2)
+        ->get();
+
+    if ($students->count() !== 1) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Student could not be uniquely verified.',
+        ], 422);
+    }
+
+    $student = $students->first();
+    $today = now()->toDateString();
+
+    $existing = Attendance::where(
+        'student_id',
+        $student->student_id
+    )
+        ->where('subject', $validated['subject'])
+        ->whereDate('attendance_date', $today)
+        ->exists();
+
+    if ($existing) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Attendance is already recorded for this subject today.',
+        ], 422);
+    }
+
+    $block = $student->course . ' '
+        . $student->year_level . '-'
+        . $student->section;
+
+    $record = Attendance::create([
+        'student_id'     => $student->student_id,
+        'student_name'   => $student->fullname,
+        'block'          => $block,
+        'subject'        => $validated['subject'],
+        'instructor'     => $validated['instructor'],
+        'schedule'       => $validated['schedule'],
+        'attendance_date'=> $today,
+        'time_in'        => now()->format('H:i:s'),
+        'time_out'       => null,
+        'status'         => 'Present',
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Attendance recorded successfully.',
+        'record' => [
+            'student_name' => $record->student_name,
+            'subject'      => $record->subject,
+            'date'         => $today,
+            'status'       => $record->status,
+        ],
+    ]);
+}
 }

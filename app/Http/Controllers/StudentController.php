@@ -39,45 +39,43 @@ class StudentController extends Controller
 
 
     // SAVE NEW STUDENT
-    public function store(Request $request)
-    {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
-            'student_id' => 'required|unique:students,student_id',
-            'password' => 'required|min:6|confirmed',
 
-            // Profile Picture
-            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+// SAVE NEW STUDENT
+        public function store(Request $request)
+        {
+            $validated = $request->validate([
+                'full_name' => 'required|string|max:255',
+                'student_id' => 'required|string|max:255|unique:students,student_id',
+                'email' => 'required|email|max:255|unique:students,email',
+                'password' => 'required|string|min:6|confirmed',
 
-        $student = new Student();
+                'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
 
-        $student->student_id = $request->student_id;
+            $student = new Student();
 
-        // full_name from signup → fullname column
-        $student->fullname = $request->full_name;
+            $student->student_id = $validated['student_id'];
+            $student->fullname = $validated['full_name'];
+            $student->email = $validated['email'];
+            $student->password = Hash::make($validated['password']);
 
-        // Hash password
-        $student->password = Hash::make($request->password);
+            if ($request->hasFile('profile_picture')) {
+                $path = $request->file('profile_picture')
+                    ->store('profile_pictures', 'public');
 
-        // Save profile picture
-        if ($request->hasFile('profile_picture')) {
+                $student->profile_picture = $path;
+            }
 
-            $path = $request->file('profile_picture')
-                ->store('profile_pictures', 'public');
+            $student->save();
 
-            $student->profile_picture = $path;
+            return redirect()
+                ->route('student.login')
+                ->with(
+                    'success',
+                    'Account created successfully. You can now login.'
+                );
         }
 
-        $student->save();
-
-        return redirect()
-            ->route('student.login')
-            ->with(
-                'success',
-                'Account created successfully. You can now login.'
-            );
-    }
 
 
     // VIEW ONE STUDENT

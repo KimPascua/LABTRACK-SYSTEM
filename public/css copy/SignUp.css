@@ -141,7 +141,8 @@ p {
 /* Input icons */
 
 .fa-user,
-.fa-lock {
+.fa-lock
+.fa-envelope {
     position: absolute;
 
     left: 10px;
