@@ -82,16 +82,17 @@ class StudentAuthController extends Controller
     // =========================
     // QR CODE LOGIN
     // =========================
-    
+  
 public function qrLogin(Request $request)
 {
     $validated = $request->validate([
-        'date_of_birth' => 'required|date',
-        'contact' => 'required|string|max:30',
-        'address' => 'required|string|max:255',
-        'password' => 'required|string',
+        'date_of_birth' => 'required|date_format:Y-m-d',
+        'contact'       => 'required|string|max:30',
+        'address'       => 'required|string|max:255',
+        'password'      => 'required|string',
     ]);
 
+    // Find the student using the QR details.
     $students = Student::whereDate(
         'date_of_birth',
         $validated['date_of_birth']
@@ -103,7 +104,7 @@ public function qrLogin(Request $request)
     )
     ->get();
 
-    // Require exactly one matching student.
+    // Do not authenticate if no unique record matches.
     if ($students->count() !== 1) {
         return response()->json([
             'success' => false,
@@ -113,11 +114,11 @@ public function qrLogin(Request $request)
 
     $student = $students->first();
 
-    // Verify the student's password before creating a session.
+    // Verify the password before creating a session.
     if (!Hash::check($validated['password'], $student->password)) {
         return response()->json([
             'success' => false,
-            'message' => 'Unable to verify student credentials.'
+            'message' => 'Invalid student credentials.'
         ], 401);
     }
 
