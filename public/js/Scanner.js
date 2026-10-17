@@ -196,6 +196,10 @@ console.log("VERIFY FUNCTION CALLED:", studentId);
 
             student_id:
                 studentId.trim()
+            date_of_birth: qrData.date_of_birth,
+            contact: qrData.contact,
+            address: qrData.address,
+            password: document.getElementById("qrPassword").value
 
         })
 
@@ -333,6 +337,63 @@ if (qrStatus) {
         }, 1500);
 
     });
+}
+
+
+
+function parseStudentQR(decodedText) {
+    const birthdayMatch = decodedText.match(
+        /BIRTHDAY:\s*([^\r\n]+?)(?=\s+CONTACT NUMBER:|\s+ADDRESS:|$)/i
+    );
+
+    const contactMatch = decodedText.match(
+        /CONTACT NUMBER:\s*([^\r\n]+?)(?=\s+ADDRESS:|$)/i
+    );
+
+    const addressMatch = decodedText.match(
+        /ADDRESS:\s*([\s\S]+)$/i
+    );
+
+    if (!birthdayMatch || !contactMatch || !addressMatch) {
+        return null;
+    }
+
+    const birthday = birthdayMatch[1].trim();
+    const contact = contactMatch[1].trim();
+    const address = addressMatch[1].trim();
+
+    // Convert MM/DD/YYYY to YYYY-MM-DD
+    const dateMatch = birthday.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+    );
+
+    if (!dateMatch || !contact || !address) {
+        return null;
+    }
+
+    const month = Number(dateMatch[1]);
+    const day = Number(dateMatch[2]);
+    const year = Number(dateMatch[3]);
+
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    // Reject invalid calendar dates.
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+    ) {
+        return null;
+    }
+
+    const formattedBirthday =
+        `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    return {
+        date_of_birth: formattedBirthday,
+        contact: contact,
+        address: address
+    };
 }
 
 

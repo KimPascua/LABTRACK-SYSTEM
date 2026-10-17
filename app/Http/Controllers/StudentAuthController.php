@@ -82,23 +82,60 @@ class StudentAuthController extends Controller
     // =========================
     // QR CODE LOGIN
     // =========================
-    public function qrLogin(Request $request)
-    {
-        $request->validate([
-            'student_id' => 'required|string',
-        ]);
+    
+public function qrLogin(Request $request)
+{
+    $validated = $request->validate([
+        'dateofbirth' => 'required|date',
+        'contact' => 'required|string|max:30',
+        'address' => 'required|string|max:255',
+        'password' => 'required|string',
+    ]);
 
-        $student = Student::where(
-            'student_id',
-            $request->student_id
-        )->first();
+    $students = Student::whereDate(
+        'date_of_birth',
+        $validated['date_of_birth']
+    )
+    ->where('contact', trim($validated['contact']))
+    ->whereRaw(
+        'LOWER(TRIM(address)) = ?',
+        [strtolower(trim($validated['address']))]
+    )
+    ->get();
 
-        if (!$student) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Student ID not found.'
-            ], 404);
-        }
+    // Require exactly one matching student.
+    if ($students->count() !== 1) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Student record not found or details are ambiguous.'
+        ], 422);
+    }
+
+    $student = $students->first();
+
+    // Verify the student's password before creating a session.
+    if (!Hash::check($validated['password'], $student->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unable to verify student credentials.'
+        ], 401);
+    }
+
+    Auth::guard('student')->login($student);
+
+    $request->session()->regenerate();
+
+    session([
+        'student_id' => $student->id,
+        'student_name' => $student->fullname,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Student verified successfully.',
+        'redirect' => route('student.dashboard')
+    ]);
+
 
         // ==========================================
         // IMPORTANT:
