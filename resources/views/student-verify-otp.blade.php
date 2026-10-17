@@ -7,7 +7,7 @@
 
     <title>Verify Email | LabTrack</title>
 
-    <link rel="stylesheet" href="{{ asset('css copy/student-verify-otp.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/student-verify-otp.css') }}">
     <script src="{{ asset('js/student-verify-otp.js') }}" defer></script>
 </head>
 
