@@ -149,11 +149,11 @@ qrScanner.start(
 // ==========================================
 // VERIFY STUDENT
 // ==========================================
-function verifyStudentByQR(studentId) {
-console.log("VERIFY FUNCTION CALLED:", studentId);
+function verifyStudentByQR(qrData) {
+console.log("VERIFY FUNCTION CALLED:", qrData);
     console.log(
         "Verifying Student ID:",
-        studentId
+        qrData.date_of_birth
     );
 
 
@@ -192,16 +192,14 @@ console.log("VERIFY FUNCTION CALLED:", studentId);
 
         },
 
+        
         body: JSON.stringify({
-
-            student_id:
-                studentId.trim()
             date_of_birth: qrData.date_of_birth,
             contact: qrData.contact,
             address: qrData.address,
             password: document.getElementById("qrPassword").value
-
         })
+
 
     })
 

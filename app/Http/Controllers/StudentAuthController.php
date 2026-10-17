@@ -86,7 +86,7 @@ class StudentAuthController extends Controller
 public function qrLogin(Request $request)
 {
     $validated = $request->validate([
-        'dateofbirth' => 'required|date',
+        'date_of_birth' => 'required|date',
         'contact' => 'required|string|max:30',
         'address' => 'required|string|max:255',
         'password' => 'required|string',
