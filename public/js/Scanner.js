@@ -160,193 +160,133 @@ function (decodedText) {
 }
 
 
-// ==========================================
-// VERIFY STUDENT
-// ==========================================
-function verifyStudentByQR(qrData, password) {
+function verifyStudentByQR(qrData) {
     console.log("QR verification started:", {
-    hasBirthday: Boolean(qrData.date_of_birth),
-    hasContact: Boolean(qrData.contact),
-    hasAddress: Boolean(qrData.address)
-});
+        hasBirthday: Boolean(qrData.date_of_birth),
+        hasContact: Boolean(qrData.contact),
+        hasAddress: Boolean(qrData.address)
+    });
 
-
-    const csrf =
-        document.querySelector(
-            'meta[name="csrf-token"]'
-        );
-
+    const csrf = document.querySelector(
+        'meta[name="csrf-token"]'
+    );
 
     if (!csrf) {
-
-        console.error(
-            "CSRF token is missing."
-        );
-
+        console.error("CSRF token is missing.");
         restartQRScanner();
-
         return;
     }
 
+    const payload = {
+        date_of_birth: qrData.date_of_birth,
+        contact: qrData.contact,
+        address: qrData.address
+    };
+
+    // Safe diagnostics: do not print private student data.
+    console.log("QR PAYLOAD CHECK:", {
+        dateFormatOK:
+            /^\d{4}-\d{2}-\d{2}$/.test(payload.date_of_birth || ""),
+        contactPresent:
+            Boolean(payload.contact && payload.contact.trim()),
+        addressPresent:
+            Boolean(payload.address && payload.address.trim()),
+        contactLength:
+            (payload.contact || "").length,
+        addressLength:
+            (payload.address || "").length
+    });
 
     fetch("/student/qr-login", {
-
         method: "POST",
-
         headers: {
-
-            "Content-Type":
-                "application/json",
-
-            "Accept":
-                "application/json",
-
-            "X-CSRF-TOKEN":
-                csrf.getAttribute("content")
-
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-CSRF-TOKEN": csrf.getAttribute("content")
         },
-
-
-        body: JSON.stringify({
-            date_of_birth: qrData.date_of_birth,
-            contact: qrData.contact,
-            address: qrData.address,
-        })
-
-
+        body: JSON.stringify(payload)
     })
+    .then(async function (response) {
+        const body = await response.text();
 
-.then(async function(response) {
-    const body = await response.text();
+        console.log("QR LOGIN HTTP STATUS:", response.status);
 
-    console.log("QR LOGIN HTTP STATUS:", response.status);
-console.log("QR LOGIN CONTENT TYPE:", response.headers.get("content-type"));
+        let result;
 
-
-const qrStatus = document.getElementById("qrStatus");
-
-if (qrStatus) {
-    qrStatus.textContent =
-        "HTTP " + response.status + ": " + body.slice(0, 250);
-}
-
-    try {
-        return JSON.parse(body);
-    } catch {
-        throw new Error(
-            `HTTP ${response.status}: Server returned a non-JSON response.`
-        );
-    }
-})
-
-
-    .then(function(result) {
-
-        console.log(
-            "QR LOGIN RESULT:",
-            result
-        );
-
-
-        const status =
-            document.getElementById("qrStatus");
-
-
-        // ======================================
-        // SUCCESS
-        // ======================================
-        if (result.success) {
-
-            console.log(
-                "QR LOGIN SUCCESS"
+        try {
+            result = JSON.parse(body);
+        } catch {
+            throw new Error(
+                `HTTP ${response.status}: Server returned a non-JSON response.`
             );
-
-
-            if (status) {
-
-                status.textContent =
-                    "✓ Student verified! Redirecting...";
-
-                status.className =
-                    "qr-status verified";
-            }
-
-
-            setTimeout(function() {
-
-                window.location.href =
-                    result.redirect;
-
-            }, 700);
-
         }
 
+        console.log("QR LOGIN RESULT:", {
+            success: result.success,
+            message: result.message,
+            errors: result.errors || null
+        });
 
-        // ======================================
-        // INVALID STUDENT
-        // ======================================
-        else {
+        return {
+            ok: response.ok,
+            result: result
+        };
+    })
+    .then(function (response) {
+        const result = response.result;
+        const status = document.getElementById("qrStatus");
 
-            console.error(
-                "QR LOGIN FAILED:",
-                result.message
-            );
-
-
+        if (result.success && response.ok) {
             if (status) {
-
                 status.textContent =
-                    result.message ||
-                    "Student ID not found.";
-
-                status.className =
-                    "qr-status error";
+                    "Student verified. Redirecting...";
+                status.className = "qr-status verified";
             }
 
+            if (result.redirect) {
+                window.location.href = result.redirect;
+            } else {
+                console.error(
+                    "Login succeeded but no redirect was returned."
+                );
+            }
 
-            isProcessingQR = false;
-
-            setTimeout(function() {
-
-                restartQRScanner();
-
-            }, 1500);
+            return;
         }
-
-    })
-
-
-    .catch(function(error) {
 
         console.error(
-            "QR LOGIN ERROR:",
-            error
+            "QR LOGIN FAILED:",
+            result.message || "Unknown error"
         );
 
-
-        const status =
-            document.getElementById("qrStatus");
-
-
         if (status) {
-
             status.textContent =
-                "Unable to verify Student ID.";
-
-            status.className =
-                "qr-status error";
+                result.message || "Student verification failed.";
+            status.className = "qr-status error";
         }
-
 
         isProcessingQR = false;
 
-
-        setTimeout(function() {
-
+        setTimeout(function () {
             restartQRScanner();
-
         }, 1500);
+    })
+    .catch(function (error) {
+        console.error("QR LOGIN ERROR:", error);
 
+        const status = document.getElementById("qrStatus");
+
+        if (status) {
+            status.textContent =
+                "Unable to verify Student ID. Please try again.";
+            status.className = "qr-status error";
+        }
+
+        isProcessingQR = false;
+
+        setTimeout(function () {
+            restartQRScanner();
+        }, 1500);
     });
 }
 
@@ -356,58 +296,49 @@ if (qrStatus) {
 // RESTART SCANNER
 // ==========================================
 
-function parseStudentQR(decodedText) {
-    if (typeof decodedText !== "string") {
-        return null;
-    }
 
-    const text = decodedText
-        .replace(/\r?\n/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+function parseStudentQR(qrText) {
+    const birthdayMatch = qrText.match(
+        /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
+    );
 
-            
-        const birthdayMatch = text.match(
-            /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
-        );
+    const contactMatch = qrText.match(
+        /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
+    );
 
-        const contactMatch = text.match(
-            /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
-        );
-
-        const addressMatch = text.match(
-            /ADDRESS:\s*(.+)$/i
-        );
+    const addressMatch = qrText.match(
+        /ADDRESS:\s*(.+)$/i
+    );
 
     if (!birthdayMatch || !contactMatch || !addressMatch) {
-        console.error("Invalid student QR format.");
+        console.error("Missing or invalid student details.");
         return null;
     }
 
     const dateMatch = birthdayMatch[1].match(
-        /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
-    );
-
+    /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
+);
 
     const contact = contactMatch[1].trim();
     const address = addressMatch[1].trim();
 
     if (!dateMatch || !contact || !address) {
+        console.error("Missing or invalid student details.");
         return null;
     }
 
-    // Assumes the QR birthday format is MM/DD/YYYY.
     const month = Number(dateMatch[1]);
     const day = Number(dateMatch[2]);
     const year = Number(dateMatch[3]);
 
-    const date = new Date(Date.UTC(year, month - 1, day));
+    const date = new Date(year, month - 1, day);
 
     if (
-        date.getUTCFullYear() !== year ||
-        date.getUTCMonth() !== month - 1 ||
-        date.getUTCDate() !== day
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
     ) {
+        console.error("Invalid birthday.");
         return null;
     }
 
@@ -417,7 +348,6 @@ function parseStudentQR(decodedText) {
         address: address
     };
 }
-
 
 
 
