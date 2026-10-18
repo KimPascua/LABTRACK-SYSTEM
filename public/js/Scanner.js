@@ -164,11 +164,11 @@ function (decodedText) {
 // VERIFY STUDENT
 // ==========================================
 function verifyStudentByQR(qrData, password) {
-console.log("VERIFY FUNCTION CALLED:", qrData);
-    console.log(
-        "Verifying Student ID:",
-        qrData.date_of_birth
-    );
+    console.log("QR verification started:", {
+    hasBirthday: Boolean(qrData.date_of_birth),
+    hasContact: Boolean(qrData.contact),
+    hasAddress: Boolean(qrData.address)
+});
 
 
     const csrf =
@@ -221,7 +221,7 @@ console.log("VERIFY FUNCTION CALLED:", qrData);
 
     console.log("QR LOGIN HTTP STATUS:", response.status);
 console.log("QR LOGIN CONTENT TYPE:", response.headers.get("content-type"));
-console.log("QR LOGIN RESPONSE BODY:", body);
+
 
 const qrStatus = document.getElementById("qrStatus");
 
@@ -416,56 +416,84 @@ function parseStudentQR(decodedText) {
 // RESTART SCANNER
 // ==========================================
 
-function restartQRScanner() {
-    console.log("Restarting QR scanner...");
 
-    const scanner = qrScanner;
-
-    if (!scanner) {
-        isProcessingQR = false;
-
-        const modal = document.getElementById("qrScannerModal");
-
-        if (modal && modal.classList.contains("open")) {
-            openQRScanner();
-        }
-
-        return;
+function parseStudentQR(decodedText) {
+    if (typeof decodedText !== "string") {
+        return null;
     }
 
-    // Invalidate the current scanner reference first
-    qrScanner = null;
+    const text = decodedText
+        .replace(/\r?\n/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
-    // Stop only if the scanner is actually running
-    const stopPromise = scanner.getState() === 2
-        ? scanner.stop().catch(function(error) {
-            console.warn("Camera stop warning:", error);
-        })
-        : Promise.resolve();
+    const birthdayMatch = text.match(
+        /BIRTHDAY:\s*(\d{4}-\d{2}-\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
+    );
 
-    stopPromise
-        .then(function() {
-            try {
-                scanner.clear();
-            } catch (error) {
-                console.warn("Scanner clear warning:", error);
-            }
-        })
-        .finally(function() {
-            const reader = document.getElementById("qr-reader");
+    const contactMatch = text.match(
+        /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
+    );
 
-            if (reader) {
-                reader.innerHTML = "";
-            }
+    const addressMatch = text.match(
+        /ADDRESS:\s*(.+)$/i
+    );
 
-            isProcessingQR = false;
+    if (!birthdayMatch || !contactMatch || !addressMatch) {
+        console.warn("QR format validation failed.");
+        return null;
+    }
 
-            const modal = document.getElementById("qrScannerModal");
+    const birthday = birthdayMatch[1].trim();
+    const contact = contactMatch[1].trim();
+    const address = addressMatch[1].trim();
 
-            if (modal && modal.classList.contains("open")) {
-                openQRScanner();
-            }
-        });
+    let year, month, day;
+
+    // ISO format: YYYY-MM-DD
+    const isoMatch = birthday.match(
+        /^(\d{4})-(\d{2})-(\d{2})$/
+    );
+
+    if (isoMatch) {
+        year = Number(isoMatch[1]);
+        month = Number(isoMatch[2]);
+        day = Number(isoMatch[3]);
+    } else {
+        // Existing legacy format: MM/DD/YYYY or MM-DD-YYYY
+        const legacyMatch = birthday.match(
+            /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
+        );
+
+        if (!legacyMatch) {
+            console.warn("Unsupported QR birthday format.");
+            return null;
+        }
+
+        month = Number(legacyMatch[1]);
+        day = Number(legacyMatch[2]);
+        year = Number(legacyMatch[3]);
+    }
+
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day ||
+        !contact ||
+        !address
+    ) {
+        console.warn("QR data validation failed.");
+        return null;
+    }
+
+    return {
+        date_of_birth:
+            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+        contact,
+        address
+    };
 }
 
 
