@@ -70,6 +70,16 @@ public function qrLogin(Request $request)
         'address'       => 'required|string|max:255',
     ]);
 
+
+    \Log::info('QR LOGIN MATCH CHECK', [
+    'birthday_received' => $validated['date_of_birth'],
+    'contact_length' => strlen(trim($validated['contact'])),
+    'address_length' => strlen(trim($validated['address'])),
+    'birthday_matches' => Student::where(
+        'date_of_birth',
+        $validated['date_of_birth']
+    )->count(),
+]);
     // Find the student using the scanned details.
     $students = Student::where(
         'date_of_birth',
