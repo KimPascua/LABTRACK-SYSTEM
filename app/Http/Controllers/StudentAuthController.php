@@ -62,6 +62,7 @@ class StudentAuthController extends Controller
     // STUDENT LOGOUT
     // =========================
    
+
 public function qrLogin(Request $request)
 {
     $validated = $request->validate([
@@ -70,40 +71,70 @@ public function qrLogin(Request $request)
         'address'       => 'required|string|max:255',
     ]);
 
-
-\Log::info('QR LOGIN MATCH CHECK', [
-    'birthday_matches' => Student::where(
-        'date_of_birth',
-        $validated['date_of_birth']
-    )->count(),
-
-    'contact_matches' => Student::where(
-        'date_of_birth',
-        $validated['date_of_birth']
-    )->where(
-        'contact',
-        trim($validated['contact'])
-    )->count(),
-
-    'address_matches' => Student::where(
-        'date_of_birth',
-        $validated['date_of_birth']
-    )->where(
-        'address',
+    $normalizedAddress = mb_strtolower(
         trim($validated['address'])
-    )->count(),
+    );
 
-    'all_details_match' => Student::where(
+    // Diagnose matches without logging personal details.
+    \Log::info('QR LOGIN MATCH CHECK', [
+        'birthday_matches' => Student::where(
+            'date_of_birth',
+            $validated['date_of_birth']
+        )->count(),
+
+        'contact_matches' => Student::where(
+            'date_of_birth',
+            $validated['date_of_birth']
+        )->where(
+            'contact',
+            trim($validated['contact'])
+        )->count(),
+
+        'address_matches' => Student::where(
+            'date_of_birth',
+            $validated['date_of_birth']
+        )->whereRaw(
+            'LOWER(TRIM(address)) = ?',
+            [$normalizedAddress]
+        )->count(),
+    ]);
+
+    // Match the registered student.
+    $students = Student::where(
         'date_of_birth',
         $validated['date_of_birth']
-    )->where(
-        'contact',
-        trim($validated['contact'])
-    )->where(
-        'address',
-        trim($validated['address'])
-    )->count(),
-]);
+    )
+        ->where('contact', trim($validated['contact']))
+        ->whereRaw(
+            'LOWER(TRIM(address)) = ?',
+            [$normalizedAddress]
+        )
+        ->get();
+
+    if ($students->count() !== 1) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Student record not found or details are ambiguous.',
+        ], 422);
+    }
+
+    $student = $students->first();
+
+    // Authenticate the matched student.
+    Auth::guard('student')->login($student);
+
+    $request->session()->regenerate();
+
+    $request->session()->put([
+        'student_id' => $student->id,
+        'student_name' => $student->fullname,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'QR login successful.',
+        'redirect' => route('student.dashboard'),
+    ]);
 }
 
 
