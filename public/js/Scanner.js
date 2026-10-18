@@ -76,20 +76,11 @@ function (decodedText) {
         return;
     }
 
-    const passwordInput = document.getElementById("qrPassword");
-
-    if (!passwordInput || !passwordInput.value.trim()) {
-        if (status) {
-            status.textContent = "Please enter your password first.";
-            status.className = "qr-status error";
-        }
-        return;
-    }
-
     isProcessingQR = true;
 
     if (status) {
-        status.textContent = "QR detected. Verifying student...";
+       status.textContent =
+    "✓ QR verified. Sending you to OTP verification...";
         status.className = "qr-status verified";
     }
 
@@ -220,7 +211,6 @@ console.log("VERIFY FUNCTION CALLED:", qrData);
             date_of_birth: qrData.date_of_birth,
             contact: qrData.contact,
             address: qrData.address,
-            password: document.getElementById("qrPassword").value
         })
 
 
@@ -367,11 +357,12 @@ function parseStudentQR(decodedText) {
     }
 
     const text = decodedText
+        .replace(/\r?\n/g, " ")
         .replace(/\s+/g, " ")
         .trim();
 
     const birthdayMatch = text.match(
-        /BIRTHDAY:\s*(\d{1,2}\/\d{1,2}\/\d{4})\s+CONTACT NUMBER:/i
+        /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
     );
 
     const contactMatch = text.match(
@@ -383,12 +374,12 @@ function parseStudentQR(decodedText) {
     );
 
     if (!birthdayMatch || !contactMatch || !addressMatch) {
-        console.error("Invalid QR contents:", text);
+        console.error("Invalid student QR format.");
         return null;
     }
 
     const dateMatch = birthdayMatch[1].match(
-        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
     );
 
     const contact = contactMatch[1].trim();
@@ -419,6 +410,7 @@ function parseStudentQR(decodedText) {
         address: address
     };
 }
+
 
 // ==========================================
 // RESTART SCANNER
