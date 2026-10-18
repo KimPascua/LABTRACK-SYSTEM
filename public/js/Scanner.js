@@ -351,6 +351,11 @@ if (qrStatus) {
 }
 
 
+
+// ==========================================
+// RESTART SCANNER
+// ==========================================
+
 function parseStudentQR(decodedText) {
     if (typeof decodedText !== "string") {
         return null;
@@ -361,17 +366,18 @@ function parseStudentQR(decodedText) {
         .replace(/\s+/g, " ")
         .trim();
 
-    const birthdayMatch = text.match(
-        /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
-    );
+            
+        const birthdayMatch = text.match(
+            /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
+        );
 
-    const contactMatch = text.match(
-        /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
-    );
+        const contactMatch = text.match(
+            /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
+        );
 
-    const addressMatch = text.match(
-        /ADDRESS:\s*(.+)$/i
-    );
+        const addressMatch = text.match(
+            /ADDRESS:\s*(.+)$/i
+        );
 
     if (!birthdayMatch || !contactMatch || !addressMatch) {
         console.error("Invalid student QR format.");
@@ -382,6 +388,7 @@ function parseStudentQR(decodedText) {
         /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
     );
 
+
     const contact = contactMatch[1].trim();
     const address = addressMatch[1].trim();
 
@@ -389,6 +396,7 @@ function parseStudentQR(decodedText) {
         return null;
     }
 
+    // Assumes the QR birthday format is MM/DD/YYYY.
     const month = Number(dateMatch[1]);
     const day = Number(dateMatch[2]);
     const year = Number(dateMatch[3]);
@@ -404,99 +412,48 @@ function parseStudentQR(decodedText) {
     }
 
     return {
-        date_of_birth:
-            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+        date_of_birth: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
         contact: contact,
         address: address
     };
 }
 
 
-// ==========================================
-// RESTART SCANNER
-// ==========================================
 
 
-function parseStudentQR(decodedText) {
-    if (typeof decodedText !== "string") {
-        return null;
+function restartQRScanner() {
+    isProcessingQR = false;
+
+    const status = document.getElementById("qrStatus");
+
+    if (status) {
+        status.textContent = "Restarting QR scanner...";
+        status.className = "qr-status";
     }
 
-    const text = decodedText
-        .replace(/\r?\n/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    // Reuse the existing scanner initialization.
+    if (qrScanner) {
+        qrScanner.stop()
+            .catch(function () {
+                // The scanner may already be stopped.
+            })
+            .then(function () {
+                if (qrScanner) {
+                    try {
+                        qrScanner.clear();
+                    } catch (error) {
+                        console.warn("Scanner cleanup skipped.");
+                    }
 
-    const birthdayMatch = text.match(
-        /BIRTHDAY:\s*(\d{4}-\d{2}-\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
-    );
+                    qrScanner = null;
+                }
 
-    const contactMatch = text.match(
-        /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
-    );
-
-    const addressMatch = text.match(
-        /ADDRESS:\s*(.+)$/i
-    );
-
-    if (!birthdayMatch || !contactMatch || !addressMatch) {
-        console.warn("QR format validation failed.");
-        return null;
-    }
-
-    const birthday = birthdayMatch[1].trim();
-    const contact = contactMatch[1].trim();
-    const address = addressMatch[1].trim();
-
-    let year, month, day;
-
-    // ISO format: YYYY-MM-DD
-    const isoMatch = birthday.match(
-        /^(\d{4})-(\d{2})-(\d{2})$/
-    );
-
-    if (isoMatch) {
-        year = Number(isoMatch[1]);
-        month = Number(isoMatch[2]);
-        day = Number(isoMatch[3]);
+                openQRScanner();
+            });
     } else {
-        // Existing legacy format: MM/DD/YYYY or MM-DD-YYYY
-        const legacyMatch = birthday.match(
-            /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
-        );
-
-        if (!legacyMatch) {
-            console.warn("Unsupported QR birthday format.");
-            return null;
-        }
-
-        month = Number(legacyMatch[1]);
-        day = Number(legacyMatch[2]);
-        year = Number(legacyMatch[3]);
+        openQRScanner();
     }
-
-    const date = new Date(Date.UTC(year, month - 1, day));
-
-    if (
-        date.getUTCFullYear() !== year ||
-        date.getUTCMonth() !== month - 1 ||
-        date.getUTCDate() !== day ||
-        !contact ||
-        !address
-    ) {
-        console.warn("QR data validation failed.");
-        return null;
-    }
-
-    return {
-        date_of_birth:
-            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-        contact,
-        address
-    };
 }
-
-
 
 
 // ==========================================
