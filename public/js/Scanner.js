@@ -299,7 +299,7 @@ function verifyStudentByQR(qrData) {
 
 function parseStudentQR(qrText) {
     const birthdayMatch = qrText.match(
-        /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s+CONTACT NUMBER:/i
+        /BIRTHDAY:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})/i
     );
 
     const contactMatch = qrText.match(
@@ -316,8 +316,8 @@ function parseStudentQR(qrText) {
     }
 
     const dateMatch = birthdayMatch[1].match(
-    /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
-);
+        /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
+    );
 
     const contact = contactMatch[1].trim();
     const address = addressMatch[1].trim();
@@ -327,6 +327,7 @@ function parseStudentQR(qrText) {
         return null;
     }
 
+    // Assumes the QR date format is MM/DD/YYYY.
     const month = Number(dateMatch[1]);
     const day = Number(dateMatch[2]);
     const year = Number(dateMatch[3]);
@@ -343,11 +344,15 @@ function parseStudentQR(qrText) {
     }
 
     return {
-        date_of_birth: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+        date_of_birth:
+            year + "-" +
+            String(month).padStart(2, "0") + "-" +
+            String(day).padStart(2, "0"),
         contact: contact,
         address: address
     };
 }
+
 
 
 
