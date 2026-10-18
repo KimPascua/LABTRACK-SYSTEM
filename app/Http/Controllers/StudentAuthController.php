@@ -93,64 +93,38 @@ public function qrLogin(Request $request)
         'contact'       => 'required|string|max:30',
         'address'       => 'required|string|max:255',
     ]);
+// Find the student using the scanned details.
 
-    // Find a unique existing student record.
-    
-$birthday = $validated['date_of_birth'];
-$contact = trim($validated['contact']);
-$address = strtolower(trim($validated['address']));
-
-$birthdayCount = Student::whereDate(
+$students = Student::where(
     'date_of_birth',
-    $birthday
-)->count();
-
-$contactCount = Student::where(
-    'contact',
-    $contact
-)->count();
-
-$addressCount = Student::whereRaw(
-    'LOWER(TRIM(address)) = ?',
-    [$address]
-)->count();
-
-$exactCount = Student::whereDate(
-    'date_of_birth',
-    $birthday
+    $validated['date_of_birth']
 )
-    ->where('contact', $contact)
-    ->whereRaw(
-        'LOWER(TRIM(address)) = ?',
-        [$address]
-    )
-    ->count();
-
-\Log::info('QR login matching diagnostics', [
-    'birthday_matches' => $birthdayCount,
-    'contact_matches' => $contactCount,
-    'address_matches' => $addressCount,
-    'exact_matches' => $exactCount,
-]);
+->where('contact', $validated['contact'])
+->where('address', $validated['address'])
+->get();
 
 
-    if ($students->count() !== 1) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Student record not found or details are ambiguous.',
-        ], 422);
-    }
+        // Find the student using the scanned details.
+        $students = Student::where(
+            'date_of_birth',
+            $validated['date_of_birth']
+        )
+        ->where('contact', $validated['contact'])
+        ->where('address', $validated['address'])
+        ->get();
 
-    $student = $students->first();
+        // Check if exactly one student matches.
+        if ($students->count() !== 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student record not found or details are ambiguous.',
+            ], 422);
+        }
 
-    // OTP must be sent to the existing registered email.
-    if (empty($student->email) ||
-        !filter_var($student->email, FILTER_VALIDATE_EMAIL)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No valid registered email is available. Please contact the administrator.',
-        ], 422);
-    }
+        $student = $students->first();
+
+
+       
 
     // Prevent repeated OTP requests within 60 seconds.
     $previousOtp = DB::table('student_qr_login_otps')
