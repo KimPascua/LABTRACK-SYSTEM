@@ -61,31 +61,7 @@ class StudentAuthController extends Controller
     // =========================
     // STUDENT LOGOUT
     // =========================
-    public function logout(Request $request)
-    {
-        // IMPORTANT:
-        // Logout from the student guard
-        Auth::guard('student')->logout();
-
-        // Destroy the session
-        $request->session()->invalidate();
-
-        // Generate a new CSRF token
-        $request->session()->regenerateToken();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully.',
-            'redirect' => route('student.login')
-        ]);
-    }
-
-
-    // =========================
-    // QR CODE LOGIN
-    // =========================
-  
-
+   
 public function qrLogin(Request $request)
 {
     $validated = $request->validate([
@@ -93,109 +69,44 @@ public function qrLogin(Request $request)
         'contact'       => 'required|string|max:30',
         'address'       => 'required|string|max:255',
     ]);
-// Find the student using the scanned details.
 
-$students = Student::where(
-    'date_of_birth',
-    $validated['date_of_birth']
-)
-->where('contact', $validated['contact'])
-->where('address', $validated['address'])
-->get();
-
-
-        // Find the student using the scanned details.
-        $students = Student::where(
-            'date_of_birth',
-            $validated['date_of_birth']
-        )
+    // Find the student using the scanned details.
+    $students = Student::where(
+        'date_of_birth',
+        $validated['date_of_birth']
+    )
         ->where('contact', $validated['contact'])
         ->where('address', $validated['address'])
         ->get();
 
-        // Check if exactly one student matches.
-        if ($students->count() !== 1) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Student record not found or details are ambiguous.',
-            ], 422);
-        }
-
-        $student = $students->first();
-
-
-       
-
-    // Prevent repeated OTP requests within 60 seconds.
-    $previousOtp = DB::table('student_qr_login_otps')
-        ->where('student_id', $student->id)
-        ->orderByDesc('id')
-        ->first();
-
-    if ($previousOtp && $previousOtp->last_sent_at) {
-        $lastSent = \Illuminate\Support\Carbon::parse(
-            $previousOtp->last_sent_at
-        );
-
-        if ($lastSent->gt(now()->subSeconds(60))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please wait before requesting another OTP.',
-            ], 429);
-        }
-    }
-
-    // Invalidate previous OTPs for this student.
-    DB::table('student_qr_login_otps')
-        ->where('student_id', $student->id)
-        ->delete();
-
-    $otp = (string) random_int(100000, 999999);
-
-    $otpId = DB::table('student_qr_login_otps')->insertGetId([
-        'student_id' => $student->id,
-        'otp_hash' => Hash::make($otp),
-        'otp_expires_at' => now()->addMinutes(5),
-        'attempts' => 0,
-        'last_sent_at' => now(),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    try {
-        Mail::raw(
-            "Your LabTrack QR login verification code is: {$otp}\n\n"
-            . "This code expires in 5 minutes. Do not share it with anyone.",
-            function ($message) use ($student) {
-                $message->to($student->email)
-                    ->subject('LabTrack QR Login Verification');
-            }
-        );
-    } catch (\Throwable $e) {
-        DB::table('student_qr_login_otps')
-            ->where('id', $otpId)
-            ->delete();
-
-        report($e);
-
+    // Only continue if exactly one student matches.
+    if ($students->count() !== 1) {
         return response()->json([
             'success' => false,
-            'message' => 'Unable to send the verification email. Please try again later.',
-        ], 503);
+            'message' => 'Student record not found or details are ambiguous.',
+        ], 422);
     }
 
-    // Store only pending verification state, not an authenticated login.
-    $request->session()->put(
-        'pending_qr_student_id',
-        $student->id
-    );
+    $student = $students->first();
+
+    // Log in the matched student immediately.
+    Auth::guard('student')->login($student);
+
+    // Regenerate the session for security.
+    $request->session()->regenerate();
+
+    $request->session()->put([
+        'student_id'   => $student->id,
+        'student_name' => $student->fullname,
+    ]);
 
     return response()->json([
-        'success' => true,
-        'message' => 'A verification code has been sent to your registered email.',
-        'redirect' => route('student.qr.otp.page'),
+        'success'  => true,
+        'message'  => 'QR login successful.',
+        'redirect' => route('student.dashboard'),
     ]);
 }
+
 
 
 

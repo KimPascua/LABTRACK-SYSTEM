@@ -243,15 +243,10 @@ function verifyStudentByQR(qrData) {
                 status.className = "qr-status verified";
             }
 
-            if (result.redirect) {
+            if (result.success && result.redirect) {
                 window.location.href = result.redirect;
-            } else {
-                console.error(
-                    "Login succeeded but no redirect was returned."
-                );
+                return;
             }
-
-            return;
         }
 
         console.error(
