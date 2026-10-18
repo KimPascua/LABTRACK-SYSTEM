@@ -71,50 +71,39 @@ public function qrLogin(Request $request)
     ]);
 
 
-    \Log::info('QR LOGIN MATCH CHECK', [
-    'birthday_received' => $validated['date_of_birth'],
-    'contact_length' => strlen(trim($validated['contact'])),
-    'address_length' => strlen(trim($validated['address'])),
+\Log::info('QR LOGIN MATCH CHECK', [
     'birthday_matches' => Student::where(
         'date_of_birth',
         $validated['date_of_birth']
     )->count(),
-]);
-    // Find the student using the scanned details.
-    $students = Student::where(
+
+    'contact_matches' => Student::where(
         'date_of_birth',
         $validated['date_of_birth']
-    )
-        ->where('contact', $validated['contact'])
-        ->where('address', $validated['address'])
-        ->get();
+    )->where(
+        'contact',
+        trim($validated['contact'])
+    )->count(),
 
-    // Only continue if exactly one student matches.
-    if ($students->count() !== 1) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Student record not found or details are ambiguous.',
-        ], 422);
-    }
+    'address_matches' => Student::where(
+        'date_of_birth',
+        $validated['date_of_birth']
+    )->where(
+        'address',
+        trim($validated['address'])
+    )->count(),
 
-    $student = $students->first();
-
-    // Log in the matched student immediately.
-    Auth::guard('student')->login($student);
-
-    // Regenerate the session for security.
-    $request->session()->regenerate();
-
-    $request->session()->put([
-        'student_id'   => $student->id,
-        'student_name' => $student->fullname,
-    ]);
-
-    return response()->json([
-        'success'  => true,
-        'message'  => 'QR login successful.',
-        'redirect' => route('student.dashboard'),
-    ]);
+    'all_details_match' => Student::where(
+        'date_of_birth',
+        $validated['date_of_birth']
+    )->where(
+        'contact',
+        trim($validated['contact'])
+    )->where(
+        'address',
+        trim($validated['address'])
+    )->count(),
+]);
 }
 
 
