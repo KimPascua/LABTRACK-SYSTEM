@@ -95,16 +95,44 @@ public function qrLogin(Request $request)
     ]);
 
     // Find a unique existing student record.
-    $students = Student::whereDate(
-        'date_of_birth',
-        $validated['date_of_birth']
+    
+$birthday = $validated['date_of_birth'];
+$contact = trim($validated['contact']);
+$address = strtolower(trim($validated['address']));
+
+$birthdayCount = Student::whereDate(
+    'date_of_birth',
+    $birthday
+)->count();
+
+$contactCount = Student::where(
+    'contact',
+    $contact
+)->count();
+
+$addressCount = Student::whereRaw(
+    'LOWER(TRIM(address)) = ?',
+    [$address]
+)->count();
+
+$exactCount = Student::whereDate(
+    'date_of_birth',
+    $birthday
+)
+    ->where('contact', $contact)
+    ->whereRaw(
+        'LOWER(TRIM(address)) = ?',
+        [$address]
     )
-        ->where('contact', trim($validated['contact']))
-        ->whereRaw(
-            'LOWER(TRIM(address)) = ?',
-            [strtolower(trim($validated['address']))]
-        )
-        ->get();
+    ->count();
+
+\Log::info('QR login matching diagnostics', [
+    'birthday_matches' => $birthdayCount,
+    'contact_matches' => $contactCount,
+    'address_matches' => $addressCount,
+    'exact_matches' => $exactCount,
+]);
+
 
     if ($students->count() !== 1) {
         return response()->json([
