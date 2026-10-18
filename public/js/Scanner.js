@@ -302,7 +302,7 @@ function parseStudentQR(qrText) {
     );
 
     const addressMatch = qrText.match(
-        /ADDRESS:\s*(.+)$/i
+        /ADDRESS:\s*(.+)$/im
     );
 
     if (!birthdayMatch || !contactMatch || !addressMatch) {
@@ -322,7 +322,7 @@ function parseStudentQR(qrText) {
         return null;
     }
 
-    // Assumes the QR date format is MM/DD/YYYY.
+    // QR birthday format: MM/DD/YYYY
     const month = Number(dateMatch[1]);
     const day = Number(dateMatch[2]);
     const year = Number(dateMatch[3]);
@@ -347,8 +347,6 @@ function parseStudentQR(qrText) {
         address: address
     };
 }
-
-
 
 
 function restartQRScanner() {
