@@ -169,6 +169,22 @@ Route::post('/student/qr-login', [StudentAuthController::class, 'qrLogin'])
     ->name('student.qr.login');
 
 
+
+Route::get('/student-qr-verify-otp', [
+    StudentAuthController::class,
+    'showQrOtp'
+])->name('student.qr.otp.page');
+
+Route::post('/student-qr-verify-otp', [
+    StudentAuthController::class,
+    'verifyQrOtp'
+])->middleware('throttle:10,1')->name('student.qr.otp.verify');
+
+Route::post('/student-qr-resend-otp', [
+    StudentAuthController::class,
+    'resendQrOtp'
+])->middleware('throttle:3,1')->name('student.qr.otp.resend');
+
 // STUDENT DASHBOARD
 Route::get('/dashboard', function () {
 
@@ -326,7 +342,7 @@ Route::post(
 )->middleware(\App\Http\Middleware\EnsureAdminSession::class)
  ->name('admin.application.activities.store');
 
- 
+
 Route::post(
     '/student/application-activities',
     [ApplicationActivityController::class, 'storeStudentEvent']
@@ -358,7 +374,7 @@ Route::delete('/admin/applications/{application}', [ApplicationController::class
 
 
 
-    
+
 // =========================
 // ATTENDANCE ROUTES
 // =========================
