@@ -62,10 +62,8 @@ qrScanner.start(
     // QR DETECTED
     // ==============================
 
-function(decodedText) {
+function (decodedText) {
     if (isProcessingQR) return;
-
-    console.log("QR DETECTED:", decodedText);
 
     const qrData = parseStudentQR(decodedText);
     const status = document.getElementById("qrStatus");
@@ -78,32 +76,50 @@ function(decodedText) {
         return;
     }
 
+    const passwordInput = document.getElementById("qrPassword");
+
+    if (!passwordInput || !passwordInput.value.trim()) {
+        if (status) {
+            status.textContent = "Please enter your password first.";
+            status.className = "qr-status error";
+        }
+        return;
+    }
+
     isProcessingQR = true;
 
     if (status) {
-        status.textContent = "QR detected. Checking student record...";
+        status.textContent = "QR detected. Verifying student...";
         status.className = "qr-status verified";
     }
 
     const scanner = qrScanner;
 
-    if (scanner) {
-        scanner.stop()
-            .catch(function(error) {
-                console.warn("Scanner stop warning:", error);
-            })
-            .finally(function() {
-                // Do not log in using personal details alone.
-                // Attendance needs its own backend endpoint.
-                if (status) {
-                    status.textContent =
-                        "QR recognized. Attendance verification is not configured yet.";
-                    status.className = "qr-status";
-                }
-
-                isProcessingQR = false;
-            });
+    if (!scanner) {
+        isProcessingQR = false;
+        return;
     }
+
+    scanner.stop()
+        .then(function () {
+            scanner.clear();
+            qrScanner = null;
+
+            // Call the actual Laravel QR-login verification.
+            verifyStudentByQR(qrData);
+        })
+        .catch(function (error) {
+            console.error("Unable to stop QR scanner:", error);
+
+            qrScanner = null;
+            isProcessingQR = false;
+
+            if (status) {
+                status.textContent =
+                    "Unable to process QR code. Please try again.";
+                status.className = "qr-status error";
+            }
+        });
 },
 
 
@@ -345,23 +361,21 @@ if (qrStatus) {
 }
 
 
-
 function parseStudentQR(decodedText) {
     if (typeof decodedText !== "string") {
         return null;
     }
 
-    // Normalize spaces and line breaks from the QR text.
     const text = decodedText
         .replace(/\s+/g, " ")
         .trim();
 
     const birthdayMatch = text.match(
-        /BIRTHDAY:\s*(\d{1,2}\/\d{1,2}\/\d{4})(?=\s+CONTACT NUMBER:)/i
+        /BIRTHDAY:\s*(\d{1,2}\/\d{1,2}\/\d{4})\s+CONTACT NUMBER:/i
     );
 
     const contactMatch = text.match(
-        /CONTACT NUMBER:\s*(\S+)(?=\s+ADDRESS:)/i
+        /CONTACT NUMBER:\s*(.*?)\s+ADDRESS:/i
     );
 
     const addressMatch = text.match(
@@ -369,6 +383,7 @@ function parseStudentQR(decodedText) {
     );
 
     if (!birthdayMatch || !contactMatch || !addressMatch) {
+        console.error("Invalid QR contents:", text);
         return null;
     }
 
@@ -389,7 +404,6 @@ function parseStudentQR(decodedText) {
 
     const date = new Date(Date.UTC(year, month - 1, day));
 
-    // Reject invalid calendar dates.
     if (
         date.getUTCFullYear() !== year ||
         date.getUTCMonth() !== month - 1 ||
@@ -401,17 +415,10 @@ function parseStudentQR(decodedText) {
     return {
         date_of_birth:
             `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-        contact,
-        address
+        contact: contact,
+        address: address
     };
 }
-
-
-
-
-
-
-
 
 // ==========================================
 // RESTART SCANNER
