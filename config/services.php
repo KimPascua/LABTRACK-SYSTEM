@@ -35,8 +35,12 @@ return [
         ],
     ],
 
-    'pc_agent' => [
+        'pc_agent' => [
         'token_hash' => env('PC_AGENT_TOKEN_HASH'),
         'test_token_hash' => env('PC_TEST_AGENT_TOKEN_HASH'),
+    ],
+
+    'device_discovery' => [
+        'token' => env('DEVICE_DISCOVERY_TOKEN'),
     ],
 ];
