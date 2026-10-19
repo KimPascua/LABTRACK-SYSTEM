@@ -21,7 +21,48 @@ class PcAgentActivityController extends Controller
             ], 401);
         }
 
-        $providedHash = hash('sha256', $providedToken);
+      
+$providedHash = hash('sha256', $providedToken);
+
+$productionHash = (string) config(
+    'services.pc_agent.token_hash',
+    ''
+);
+
+$testHash = (string) config(
+    'services.pc_agent.test_token_hash',
+    ''
+);
+
+if (
+    $productionHash !== ''
+    && hash_equals($productionHash, $providedHash)
+) {
+    $computerName = 'PC-01';
+} elseif (
+    $testHash !== ''
+    && hash_equals($testHash, $providedHash)
+) {
+    $computerName = 'PC-TEST-LAPTOP';
+} else {
+    logger()->warning('PC agent authentication diagnostic', [
+        'production_hash_loaded' => $productionHash !== '',
+        'test_hash_loaded' => $testHash !== '',
+        'test_hash_length' => strlen($testHash),
+        'test_hash_format_valid' => preg_match(
+            '/^[a-f0-9]{64}$/i',
+            $testHash
+        ) === 1,
+        'token_matches_test_hash' => $testHash !== ''
+            && hash_equals($testHash, $providedHash),
+    ]);
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Invalid agent credentials.',
+    ], 401);
+}
+
 
         $productionHash = (string) config(
             'services.pc_agent.token_hash',
