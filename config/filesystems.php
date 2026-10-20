@@ -69,7 +69,7 @@ return [
             'cloud' => env('CLOUDINARY_CLOUD_NAME'),
             'url' => env('CLOUDINARY_URL'),
             'secure' => true,
-            'prefix' => 'labtrack',
+            'prefix' => '',
         ],
 
     ],
