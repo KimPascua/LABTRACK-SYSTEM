@@ -134,7 +134,18 @@ if (
         ]);
 
         $computer->last_seen = now();
-        $computer->save();
+
+            $status = strtolower((string) $computer->status);
+
+            if (!in_array(
+                $status,
+                ['locked', 'maintenance', 'maint', 'inuse'],
+                true
+            )) {
+                $computer->status = 'online';
+            }
+
+            $computer->save();
 
         return response()->json([
             'success' => true,
