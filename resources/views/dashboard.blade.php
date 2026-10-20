@@ -24,11 +24,17 @@
 
 <body class="student-portal">
 
+
 @php
-    $profileImage = $student->profile_picture
-        ? asset('storage/' . $student->profile_picture)
+    $profilePicture = $student->profile_picture;
+
+    $profileImage = $profilePicture
+        ? (filter_var($profilePicture, FILTER_VALIDATE_URL)
+            ? $profilePicture
+            : asset('storage/' . $profilePicture))
         : asset('images/PROFILE.jpg');
 @endphp
+
 
 <div class="app">
 

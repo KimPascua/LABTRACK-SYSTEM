@@ -6,6 +6,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 
 class StudentController extends Controller
@@ -59,12 +60,22 @@ class StudentController extends Controller
             $student->email = $validated['email'];
             $student->password = Hash::make($validated['password']);
 
+
             if ($request->hasFile('profile_picture')) {
                 $path = $request->file('profile_picture')
-                    ->store('profile_pictures', 'public');
+                    ->store('profile_pictures', 'cloudinary');
 
-                $student->profile_picture = $path;
+                if (!$path) {
+                    return back()
+                        ->withInput()
+                        ->withErrors([
+                            'profile_picture' => 'Failed to upload profile picture. Please try again.',
+                        ]);
+                }
+
+                $student->profile_picture = Storage::disk('cloudinary')->url($path);
             }
+
 
             $student->save();
 
@@ -143,8 +154,9 @@ class StudentController extends Controller
     }
 
 
-    // UPDATE PROFILE PICTURE
-    // UPDATE PROFILE PICTURE
+    // UPDATE STUDENT OWN PROFILE
+    // UPDATE STUDENT OWN PROFILE
+
 public function updateProfilePicture(Request $request)
 {
     $request->validate([
@@ -160,87 +172,82 @@ public function updateProfilePicture(Request $request)
             ->with('error', 'Student account not found.');
     }
 
-    // Delete old picture
-    if ($student->profile_picture) {
+    // Upload the new picture to Cloudinary first.
+    $path = $request->file('profile_picture')
+        ->store('profile_pictures', 'cloudinary');
 
-        $oldPath = storage_path(
-            'app/public/' . $student->profile_picture
-        );
-
-        if (file_exists($oldPath)) {
-            unlink($oldPath);
-        }
+    if (!$path) {
+        return back()->withErrors([
+            'profile_picture' =>
+                'Failed to upload profile picture. Please try again.',
+        ]);
     }
 
-    // Save new picture
-    $path = $request->file('profile_picture')
-        ->store('profile_pictures', 'public');
+    $url = Storage::disk('cloudinary')->url($path);
 
-    $student->profile_picture = $path;
-
+    // Save the Cloudinary URL to the database.
+    $student->profile_picture = $url;
     $student->save();
 
-    // STAY ON MY PROFILE
+    // Stay on My Profile.
     return redirect()
         ->route('student.dashboard', [
             'page' => 'profile',
-            'saved' => 'profile'
+            'saved' => 'profile',
         ]);
 }
 
 
     // UPDATE STUDENT OWN PROFILE
-    // UPDATE STUDENT OWN PROFILE
-public function updateProfile(Request $request)
-{
-    $student = Student::find(session('student_id'));
+    public function updateProfile(Request $request)
+    {
+        $student = Student::find(session('student_id'));
 
-    if (!$student) {
-        return redirect()
-            ->route('student.login')
-            ->with('error', 'Student account not found.');
+        if (!$student) {
+            return redirect()
+                ->route('student.login')
+                ->with('error', 'Student account not found.');
+        }
+
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+            'student_id' => 'required|string|max:255|unique:students,student_id,' . $student->id,
+            'date_of_birth' => 'nullable|date',
+            'gender' => 'nullable|string|max:20',
+            'email' => 'nullable|email|unique:students,email,' . $student->id,
+            'contact' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'course' => 'nullable|string|max:100',
+            'year_level' => 'nullable|string|max:50',
+            'section' => 'nullable|string|max:50',
+        ]);
+
+        $student->fullname = $request->fullname;
+        $student->student_id = $request->student_id;
+        $student->date_of_birth = $request->date_of_birth;
+        $student->gender = $request->gender;
+        $student->email = $request->email;
+        $student->contact = $request->contact;
+        $student->address = $request->address;
+        $student->course = $request->course;
+        $student->year_level = $request->year_level;
+        $student->section = $request->section;
+
+        $student->save();
+
+        session([
+            'student_name' => $student->fullname,
+        ]);
+
+        return redirect()->route('student.dashboard', [
+            'page' => 'profile',
+            'saved' => 'profile',
+        ]);
     }
 
-    $request->validate([
-        'fullname' => 'required|string|max:255',
-        'student_id' => 'required|string|max:255|unique:students,student_id,' . $student->id,
-        'date_of_birth' => 'nullable|date',
-        'gender' => 'nullable|string|max:20',
-        'email' => 'nullable|email|unique:students,email,' . $student->id,
-        'contact' => 'nullable|string|max:20',
-        'address' => 'nullable|string|max:255',
-        'course' => 'nullable|string|max:100',
-        'year_level' => 'nullable|string|max:50',
-        'section' => 'nullable|string|max:50',
-    ]);
 
-    // UPDATE DATA
-    $student->fullname = $request->fullname;
-    $student->student_id = $request->student_id;
-    $student->date_of_birth = $request->date_of_birth;
-    $student->gender = $request->gender;
-    $student->email = $request->email;
-    $student->contact = $request->contact;
-    $student->address = $request->address;
-    $student->course = $request->course;
-    $student->year_level = $request->year_level;
-    $student->section = $request->section;
 
-    // SAVE TO DATABASE
-    $student->save();
 
-    // UPDATE SESSION NAME
-    session([
-        'student_name' => $student->fullname
-    ]);
-
-    // STAY ON MY PROFILE
-    return redirect()
-    ->route('student.dashboard', [
-        'page' => 'profile',
-        'saved' => 'profile'
-    ]);
-}
 public function updatePassword(Request $request)
 {
     // Get the currently logged-in student from the STUDENT GUARD
