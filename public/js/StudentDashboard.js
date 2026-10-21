@@ -2997,14 +2997,30 @@ function confirmLogout() {
         }
     })
 
-    .then(response => {
+    .then(async response => {
+    const responseText = await response.text();
 
-        if (!response.ok) {
-            throw new Error('Logout failed.');
-        }
+    console.log('Logout HTTP status:', response.status);
+    console.log('Logout response:', responseText);
 
-        return response.json();
-    })
+    let result;
+
+    try {
+        result = JSON.parse(responseText);
+    } catch {
+        throw new Error(
+            `Logout returned HTTP ${response.status}. Check Console for the response.`
+        );
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            result.message || `Logout failed: HTTP ${response.status}`
+        );
+    }
+
+    return result;
+})
 
     .then(result => {
 

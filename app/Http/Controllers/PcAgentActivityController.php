@@ -96,7 +96,7 @@ if (
         $computers = Computer::where(
             'computer_name',
             $computerName
-        )->where('lab', 'CLAB1')->get();
+        )->get();
 
         if ($computers->count() === 0) {
             return response()->json([

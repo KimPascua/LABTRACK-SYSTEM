@@ -22,13 +22,13 @@ class PcAgentRulesController extends Controller
 
         $providedHash = hash('sha256', $providedToken);
 
-        $productionHash = (string) config(
-            'services.pc_agent.token_hash',
+        $testHash = (string) config(
+            'services.pc_agent.test_token_hash',
             ''
         );
 
-        $testHash = (string) config(
-            'services.pc_agent.test_token_hash',
+        $productionHash = (string) config(
+            'services.pc_agent.token_hash',
             ''
         );
 
@@ -37,11 +37,13 @@ class PcAgentRulesController extends Controller
             && hash_equals($testHash, $providedHash)
         ) {
             $computerName = 'PC-TEST-LAPTOP';
+            $expectedLab = 'CLAB1';
         } elseif (
             $productionHash !== ''
             && hash_equals($productionHash, $providedHash)
         ) {
             $computerName = 'PC-01';
+            $expectedLab = null;
         } else {
             return response()->json([
                 'success' => false,
@@ -49,17 +51,32 @@ class PcAgentRulesController extends Controller
             ], 401);
         }
 
-        $computer = Computer::where(
+        $computerQuery = Computer::where(
             'computer_name',
             $computerName
-        )->where('lab', 'CLAB1')->first();
+        );
 
-        if (!$computer) {
+        if ($expectedLab !== null) {
+            $computerQuery->where('lab', $expectedLab);
+        }
+
+        $computers = $computerQuery->get();
+
+        if ($computers->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Registered computer was not found.',
             ], 404);
         }
+
+        if ($computers->count() !== 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Computer registration is ambiguous.',
+            ], 409);
+        }
+
+        $computer = $computers->first();
 
         $rules = Application::where('status', 'Active')
             ->whereIn('scope', [
