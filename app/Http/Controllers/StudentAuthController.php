@@ -63,6 +63,19 @@ class StudentAuthController extends Controller
     // =========================
    
 
+public function logout(Request $request)
+{
+    Auth::guard('student')->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return response()->json([
+        'success' => true,
+        'redirect' => url('/')
+    ]);
+}
+
 public function qrLogin(Request $request)
 {
     $validated = $request->validate([

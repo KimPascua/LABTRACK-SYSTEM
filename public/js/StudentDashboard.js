@@ -3002,8 +3002,8 @@ async function confirmLogout() {
             throw new Error(`Logout failed (${response.status}). Please try again.`);
         }
 
-        if (result?.success && result?.redirect) {
-            window.location.replace(result.redirect);
+        if (result?.success) {
+            window.location.replace(result.redirect || '/');
             return;
         }
 
@@ -3013,7 +3013,7 @@ async function confirmLogout() {
 
     } catch (error) {
         console.error('Logout Error:', error);
-        showToast(error.message || 'Unable to log out.');
+        showToast('Unable to log out. Please try again.');
 
         if (button) {
             button.disabled = false;
