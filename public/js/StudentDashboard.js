@@ -1432,11 +1432,6 @@ function sanitizeAnnouncementForStudent(html) {
   function closeLogout(){
     document.getElementById('logoutModal').classList.remove('open');
   }
-  function confirmLogout(){
-    closeLogout();
-    showToast("You've been logged out");
-    setTimeout(()=>{ goTo('dashboard'); }, 900);
-  }
   document.getElementById('logoutModal').addEventListener('click', function(e){
     if(e.target === this) closeLogout();
   });
@@ -2970,89 +2965,63 @@ function closeLogout() {
 }
 
 
-function confirmLogout() {
+async function confirmLogout() {
+    const button = document.querySelector('#logoutModal .btn-danger');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    const button = document.querySelector('.btn-danger');
+    if (!csrfToken) {
+        console.error('CSRF token is missing.');
+        showToast('Security token missing. Please refresh the page.');
+        return;
+    }
+
+    const originalHTML = button?.innerHTML;
 
     if (button) {
         button.disabled = true;
-
         button.innerHTML = `
             <i class="fa-solid fa-spinner fa-spin"></i>
             Logging out...
         `;
     }
 
-    const csrfToken = document
-        .querySelector('meta[name="csrf-token"]')
-        .getAttribute('content');
-
-    fetch('/student/logout', {
-        method: 'POST',
-
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        }
-    })
-
-    .then(async response => {
-    const responseText = await response.text();
-
-    console.log('Logout HTTP status:', response.status);
-    console.log('Logout response:', responseText);
-
-    let result;
-
     try {
-        result = JSON.parse(responseText);
-    } catch {
-        throw new Error(
-            `Logout returned HTTP ${response.status}. Check Console for the response.`
-        );
-    }
+        const response = await fetch('/student/logout', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
 
-    if (!response.ok) {
-        throw new Error(
-            result.message || `Logout failed: HTTP ${response.status}`
-        );
-    }
+        const result = await response.json().catch(() => null);
 
-    return result;
-})
-
-    .then(result => {
-
-        if (result.success) {
-
-            window.location.href = result.redirect;
-
-        } else {
-
-            throw new Error(
-                result.message || 'Unable to logout.'
-            );
+        if (!response.ok) {
+            throw new Error(`Logout failed (${response.status}). Please try again.`);
         }
-    })
 
-    .catch(error => {
+        if (result?.success && result?.redirect) {
+            window.location.replace(result.redirect);
+            return;
+        }
 
+        throw new Error(
+            result?.message || 'Logout response was not recognized.'
+        );
+
+    } catch (error) {
         console.error('Logout Error:', error);
+        showToast(error.message || 'Unable to log out.');
 
         if (button) {
             button.disabled = false;
-
-            button.innerHTML = `
-                Logout
-            `;
+            button.innerHTML = originalHTML || 'Logout';
         }
-
-        showToast(
-            error.message || 'Unable to logout.'
-        );
-    });
+    }
 }
+
 
 /* =========================================================
    CHANGE STUDENT PASSWORD
