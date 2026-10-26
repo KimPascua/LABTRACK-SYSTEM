@@ -43,4 +43,8 @@ return [
     'device_discovery' => [
         'token' => env('DEVICE_DISCOVERY_TOKEN'),
     ],
+
+    'website_agent' => [
+        'token_hash' => env('WEBSITE_AGENT_TOKEN_HASH'),
+    ],
 ];
