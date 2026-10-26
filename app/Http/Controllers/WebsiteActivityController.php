@@ -73,7 +73,7 @@ class WebsiteActivityController extends Controller
     'string',
     'max:253',
     'regex:/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i',
-],
+    ],
     'pc_name' => ['required', 'string', 'max:50'],
     'lab' => ['required', 'string', 'max:50'],
     'student_id' => ['nullable', 'string', 'max:50'],
