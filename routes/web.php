@@ -336,6 +336,12 @@ Route::get(
 )->middleware(\App\Http\Middleware\EnsureAdminSession::class)
  ->name('admin.application.activities');
 
+Route::get(
+    '/admin/website-activities/data',
+    [ApplicationActivityController::class, 'websiteIndex']
+)->middleware(\App\Http\Middleware\EnsureAdminSession::class)
+ ->name('admin.website.activities');
+
 Route::post(
     '/admin/application-activities',
     [ApplicationActivityController::class, 'store']

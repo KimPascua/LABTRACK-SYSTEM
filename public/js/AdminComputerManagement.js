@@ -2578,9 +2578,54 @@ async function loadApplicationActivities() {
             );
         }
 
-        applicationActivities = Array.isArray(data.activities)
-            ? data.activities
-            : [];
+       const appRecords = Array.isArray(data.activities)
+    ? data.activities.map(activity => ({
+        ...activity,
+        activity_type: 'application',
+        time: activity.time || activity.created_at || '',
+        application_name: activity.application_name || 'Unknown application'
+    }))
+    : [];
+
+const websiteResponse = await fetch(
+    '/admin/website-activities/data',
+    {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json'
+        },
+        cache: 'no-store'
+    }
+);
+
+const websiteData = await websiteResponse.json();
+
+if (!websiteResponse.ok || !websiteData.success) {
+    throw new Error('Failed to load website activities.');
+}
+
+const websiteRecords = Array.isArray(websiteData.activities)
+    ? websiteData.activities.map(activity => ({
+        id: `website-${activity.id}`,
+        activity_type: 'website',
+        time: activity.visited_at || '',
+        pc_name: activity.pc_name || '',
+        student_name: activity.student_name || 'Unassigned',
+        lab: activity.lab || '',
+        application_name: activity.website_domain || 'Unknown website',
+        action: 'Website Visited',
+        status: activity.status || 'Allowed',
+        reason: activity.reason || ''
+    }))
+    : [];
+
+applicationActivities = [...appRecords, ...websiteRecords]
+    .sort((a, b) => {
+        const timeA = Date.parse(a.time) || 0;
+        const timeB = Date.parse(b.time) || 0;
+        return timeB - timeA;
+    });
 
         populateActivityApplicationFilter();
         filterApplicationActivities();
@@ -2661,7 +2706,11 @@ function renderApplicationActivities(activities) {
                     )">
 
                     <td>
-                        ${escapeHtml(activity.time)}
+                        ${escapeHtml(
+    activity.activity_type === 'website'
+        ? (activity.time ? new Date(activity.time).toLocaleString() : '—')
+        : activity.time
+)}
                     </td>
 
                     <td>

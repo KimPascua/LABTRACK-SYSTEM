@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ApplicationActivity;
 use Illuminate\Http\Request;
+use App\Models\WebsiteActivity;
 
 class ApplicationActivityController extends Controller
 {
@@ -77,4 +78,28 @@ public function storeStudentEvent(Request $request)
     ], 201);
 }
 
+
+public function websiteIndex()
+{
+    $activities = WebsiteActivity::query()
+        ->orderByDesc('visited_at')
+        ->limit(500)
+        ->get([
+            'id',
+            'pc_name',
+            'student_id',
+            'student_name',
+            'lab',
+            'website_domain',
+            'action',
+            'status',
+            'reason',
+            'visited_at',
+        ]);
+
+    return response()->json([
+        'success' => true,
+        'activities' => $activities,
+    ]);
+}
 }
