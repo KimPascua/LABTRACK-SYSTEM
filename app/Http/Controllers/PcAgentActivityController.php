@@ -17,16 +17,17 @@ class PcAgentActivityController extends Controller
      * Unknown applications are recorded as activity, not violations.
      */
     private const EXECUTABLE_RULE_MAP = [
-        'discord' => ['discord.exe'],
-        'steam' => ['steam.exe'],
-        'torrent clients' => [
-            'qbittorrent.exe',
-            'utorrent.exe',
-            'bittorrent.exe',
-            'transmission-qt.exe',
-            'deluge.exe',
-        ],
-    ];
+    'discord' => ['discord.exe'],
+    'steam' => ['steam.exe'],
+    'notepad' => ['notepad.exe'],
+    'torrent clients' => [
+        'qbittorrent.exe',
+        'utorrent.exe',
+        'bittorrent.exe',
+        'transmission-qt.exe',
+        'deluge.exe',
+    ],
+];
 
     public function store(Request $request): JsonResponse
     {
