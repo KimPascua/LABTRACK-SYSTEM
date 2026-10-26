@@ -20,6 +20,7 @@ class PcAgentActivityController extends Controller
     'discord' => ['discord.exe'],
     'steam' => ['steam.exe'],
     'notepad' => ['notepad.exe'],
+    'notepad++' => ['notepad++.exe'],
     'torrent clients' => [
         'qbittorrent.exe',
         'utorrent.exe',
