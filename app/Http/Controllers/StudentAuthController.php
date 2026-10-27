@@ -124,6 +124,8 @@ public function qrLogin(Request $request)
             'success' => false,
             'message' => 'Student record not found or details are ambiguous.',
             'diagnostics' => [
+                'database' => \Illuminate\Support\Facades\DB::connection()
+                    ->getDatabaseName(),
                 'birthday_matches' => $birthdayMatches,
                 'contact_matches' => $contactMatches,
                 'address_matches' => $addressMatches,
