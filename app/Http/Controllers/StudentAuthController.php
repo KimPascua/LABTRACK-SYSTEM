@@ -89,7 +89,7 @@ public function qrLogin(Request $request)
     );
 
     // Diagnose matches without logging personal details.
-    \Log::info('QR LOGIN MATCH CHECK', [
+    \Log::warning('QR LOGIN MATCH CHECK', [
         'birthday_matches' => Student::where(
             'date_of_birth',
             $validated['date_of_birth']
